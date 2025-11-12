@@ -6,9 +6,11 @@ jobs:
 grade:
 runs-on: ubuntu-latest
 steps:
+# L10: 첫 번째 스텝 (4칸 들여쓰기)
 - name: 코드 체크아웃
 uses: actions/checkout@v3
 
+  # L12: 교수님이 말씀하신 두 번째 스텝 (4칸 들여쓰기)
   - name: 채점 스크립트 실행
     id: grading
     run: |
