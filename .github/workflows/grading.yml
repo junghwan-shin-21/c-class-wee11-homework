@@ -1,4 +1,4 @@
-name: 11주차 과제 채점 (입력 시뮬레이션)
+name: 11주차 과제 채점 (입력 시뮬레이션 및 프롬프트 무시)
 
 on: [push]
 
@@ -19,77 +19,80 @@ steps:
       BLUE='\033[34m'
       NC='\033[0m' # No Color
 
-      # ----------------------------------------------------
-      # 1. 초기 변수 및 헬퍼 함수 설정
-      # ----------------------------------------------------
       FINAL_SCORE=0
       FINAL_FEEDBACK=""
       TEST_NAME="학생 성적 관리 프로그램 (입력 시뮬레이션)"
       
-      # Normalize function: 모든 공백(줄바꿈, 탭, 여러 칸 공백)을 제거하고 비교하여,
-      # 출력 내용 자체의 일치 여부만 확인합니다.
+      # Normalize function: 모든 공백을 제거하고 비교하여, 출력 내용 자체의 일치 여부만 확인합니다.
       normalize_output() {
+          # 탭, 줄바꿈, 공백 등을 모두 하나의 공백으로 치환 후, 앞뒤 공백 제거
           cat "$1" | tr -d '\t\n\r' | sed 's/[[:space:]]\+/ /g' | sed 's/^ *//;s/ *$//'
       }
 
-      # ----------------------------------------------------
-      # 2. 메인 채점 시작 (100점)
-      # ----------------------------------------------------
       echo -e "\n${BLUE}--- [TEST] ${TEST_NAME} 채점 시작 ---${NC}"
 
-      # 2-1. 컴파일 시도: main.c만 컴파일합니다.
-      if gcc main.c -o student_manager -lm 2> compile_error.txt; then
-        echo -e "${GREEN}[OK]${NC} ${TEST_NAME}: 컴파일 성공."
-        
-        # 2-2. 예상 출력 파일 생성 (정확한 포맷)
-        # 학생 수 5명, 점수: 80, 90, 87, 92, 84 -> 평균: 86.6
-        # 예상 출력은 요청하신 예시와 정확히 일치해야 합니다.
-        printf "Average: 86.6\nHigh: Choi - 92점\nLow: Kim - 80점\n" > expected_output.txt
-
-        # 2-3. 입력 시뮬레이션 및 실행
-        # 요청된 예시 입력을 시뮬레이션하여 실행 파일에 파이프로 전달합니다.
-        INPUT_DATA="5\n20251111\nkim\n80\n20251112\nLee\n90\n20251113\nPark\n87\n20251114\nChoi\n92\n20251115\nYoon\n84"
-        
-        echo -e "$INPUT_DATA" | ./student_manager > actual_output_raw.txt
-        
-        # 2-4. 출력 정리
-        # 실제 출력에서 빈 줄을 제거하고 필요한 내용만 남깁니다.
-        cat actual_output_raw.txt | sed '/^$/d' > actual_output.txt
-
-        # 2-5. 출력 비교
-        EXPECTED_CLEAN=$(normalize_output expected_output.txt)
-        ACTUAL_CLEAN=$(normalize_output actual_output.txt)
-
-        if [[ "$ACTUAL_CLEAN" == "$EXPECTED_CLEAN" ]]; then
-          FINAL_SCORE=100
-          FINAL_FEEDBACK="${GREEN}[OK]${NC} ${TEST_NAME}: 통과 (100점). 모든 출력이 정확합니다."
-        else
-          FINAL_FEEDBACK="${RED}[FAIL]${NC} ${TEST_NAME}: 최종 출력 불일치. (0점)"
-          FINAL_FEEDBACK="${FINAL_FEEDBACK}\n  [예상 출력 (정규화)]: ${EXPECTED_CLEAN}"
-          FINAL_FEEDBACK="${FINAL_FEEDBACK}\n  [학생 출력 (정규화)]: ${ACTUAL_CLEAN}"
-          FINAL_FEEDBACK="${FINAL_FEEDBACK}\n\n[팁]: 평균 소수점 자리, 이름/점수 출력 포맷 ('점' 포함), 띄어쓰기가 예상 출력과 정확히 일치하는지 확인하세요."
-        fi
+      # ----------------------------------------------------
+      # 1. 파일 존재 여부 확인
+      # ----------------------------------------------------
+      if [ ! -f "main.c" ]; then
+        FINAL_SCORE=0
+        FINAL_FEEDBACK="${RED}[FAIL]${NC} 제출 파일(main.c)이 존재하지 않습니다. 파일을 확인하세요."
+        echo -e "${RED}Error: main.c 파일 없음.${NC}"
       else
-        echo -e "${RED}[FAIL]${NC} ${TEST_NAME}: 컴파일 실패."
-        FINAL_FEEDBACK="${RED}[FAIL]${NC} ${TEST_NAME}: 컴파일 실패. 코드를 확인하세요."
-        FINAL_FEEDBACK="${FINAL_FEEDBACK}\n\n[컴파일 에러]:\n$(cat compile_error.txt)"
+        # ----------------------------------------------------
+        # 2. 컴파일 시도
+        # ----------------------------------------------------
+        if gcc main.c -o student_manager -lm 2> compile_error.txt; then
+          echo -e "${GREEN}[OK]${NC} ${TEST_NAME}: 컴파일 성공."
+          
+          # 2-1. 예상 출력 파일 생성
+          # 최종 결과는 항상 3줄입니다.
+          printf "Average: 86.6\nHigh: Choi - 92점\nLow: Kim - 80점\n" > expected_output.txt
+
+          # 2-2. 입력 시뮬레이션 및 실행 (프롬프트 출력 포함)
+          # 학생 수 5명 + 5명의 학번, 이름, 성적
+          INPUT_DATA="5\n20251111\nkim\n80\n20251112\nLee\n90\n20251113\nPark\n87\n20251114\nChoi\n92\n20251115\nYoon\n84"
+          
+          # 실행 결과를 캡처합니다. (학생의 프롬프트 출력이 포함됨)
+          echo -e "$INPUT_DATA" | ./student_manager > actual_output_raw.txt
+          
+          # 2-3. 출력 정리 (결과만 추출)
+          # **** 핵심 수정 사항: 'tail -n 3' 명령어로 프롬프트를 무시하고 최종 결과 3줄만 추출합니다. ****
+          tail -n 3 actual_output_raw.txt > actual_output.txt
+
+          # 2-4. 출력 비교
+          EXPECTED_CLEAN=$(normalize_output expected_output.txt)
+          ACTUAL_CLEAN=$(normalize_output actual_output.txt)
+
+          if [[ "$ACTUAL_CLEAN" == "$EXPECTED_CLEAN" ]]; then
+            FINAL_SCORE=100
+            FINAL_FEEDBACK="${GREEN}[OK]${NC} ${TEST_NAME}: 통과 (100점). 최종 결과 3줄이 정확합니다."
+          else
+            FINAL_FEEDBACK="${RED}[FAIL]${NC} ${TEST_NAME}: 최종 출력 불일치. (0점)"
+            FINAL_FEEDBACK="${FINAL_FEEDBACK}\n  [예상 출력 (정규화)]: ${EXPECTED_CLEAN}"
+            FINAL_FEEDBACK="${FINAL_FEEDBACK}\n  [학생 출력 (정규화)]: ${ACTUAL_CLEAN}"
+            FINAL_FEEDBACK="${FINAL_FEEDBACK}\n\n[팁]: 평균 소수점 자리, 이름/점수 출력 포맷 ('점' 포함), 띄어쓰기, 대소문자 등이 예상 출력과 정확히 일치하는지 확인하세요. (결과는 마지막 3줄에 출력되어야 함)"
+          fi
+        else
+          FINAL_SCORE=0
+          FINAL_FEEDBACK="${RED}[FAIL]${NC} ${TEST_NAME}: 컴파일 실패. 코드를 확인하세요."
+          FINAL_FEEDBACK="${FINAL_FEEDBACK}\n\n[컴파일 에러]:\n$(cat compile_error.txt)"
+        fi
       fi
 
       # ----------------------------------------------------
-      # 3. 최종 점수 및 피드백 전송
+      # 3. 최종 점수 및 피드백 전송 (GitHub Classroom 보고)
       # ----------------------------------------------------
       
       FULL_FEEDBACK="--- 최종 채점 결과 (총 ${FINAL_SCORE}점 / 100점) ---\n"
       FULL_FEEDBACK="${FULL_FEEDBACK}\n${FINAL_FEEDBACK}"
       
-      # GitHub Classroom 출력 (점수 및 피드백 전달)
       echo "score=$FINAL_SCORE" >> "$GITHUB_OUTPUT"
       echo "feedback<<EOF" >> "$GITHUB_OUTPUT"
       echo -e "$FULL_FEEDBACK" >> "$GITHUB_OUTPUT"
       echo "EOF" >> "$GITHUB_OUTPUT"
 
-      # 4. 최종 실패 보장 로직 (100점 미만 시 Action 실패 처리 -> 빨간색 X 표시)
+      # 4. Action 실패 처리
       if [ $FINAL_SCORE -ne 100 ]; then
-        echo "::error::[ERROR] 최종 점수가 100점이 아니므로 채점 실패 처리합니다."
         exit 1
       fi
