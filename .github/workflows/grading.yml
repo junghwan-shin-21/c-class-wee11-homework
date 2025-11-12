@@ -3,94 +3,100 @@ name: 학생 성적 관리 프로그램 채점
 on: [push]
 
 jobs:
+# 4칸 들여쓰기: jobs 아래의 최상위 job 이름
 grade:
+# 6칸 들여쓰기: job 속성
 runs-on: ubuntu-latest
-steps:
-# L10: 첫 번째 스텝 (4칸 들여쓰기)
-- name: 코드 체크아웃
-uses: actions/checkout@v3
 
-  # L12: 교수님이 말씀하신 두 번째 스텝 (4칸 들여쓰기)
-  - name: 채점 스크립트 실행
-    id: grading
-    run: |
-      # ANSI 색상 코드 정의
-      GREEN='\033[32m'
-      RED='\033[31m'
-      NC='\033[0m' # No Color
+    # 6칸 들여쓰기: steps 리스트
+    steps:
+        # 8칸 들여쓰기: 첫 번째 스텝
+        - name: 코드 체크아웃
+          # 10칸 들여쓰기
+          uses: actions/checkout@v3
 
-      # ----------------------------------------------------
-      # 1. 초기 변수 설정 및 공백 제거 함수 정의
-      # ----------------------------------------------------
-      SCORE=0
-      FEEDBACK=""
-      
-      # [핵심 기능] normalize_output: 모든 공백(space, tab, newline, carriage return)을 제거합니다.
-      normalize_output() {
-        tr -d ' \t\n\r' < "$1"
-      }
-      
-      # ----------------------------------------------------
-      # 2. 컴파일 시도
-      # ----------------------------------------------------
-      echo "::group::컴파일 및 실행 테스트"
-      if gcc main.c -o student_manager; then
-        FEEDBACK="[OK] 컴파일 성공.\n"
-        
-        # ----------------------------------------------------
-        # 3. 예상 출력 파일 생성
-        # ----------------------------------------------------
-        # 예상 결과 (평균 87.7, High 92, Low 75)
-        # main.c에서 'High: Bob-92점' 형식으로 출력한다고 가정합니다.
-        printf "Average: 87.7\n" > expected_output_core.txt
-        printf "High: Bob-92점\n" >> expected_output_core.txt
-        printf "Low: Charlie-75점\n" >> expected_output_core.txt
+        # 8칸 들여쓰기: 두 번째 스텝
+        - name: 채점 스크립트 실행
+          # 10칸 들여쓰기
+          id: grading
+          # 10칸 들여쓰기 (run: | 다음의 스크립트 내용은 들여쓰지 않아도 무방합니다.)
+          run: |
+            # ANSI 색상 코드 정의
+            GREEN='\033[32m'
+            RED='\033[31m'
+            NC='\033[0m' # No Color
 
-        # ----------------------------------------------------
-        # 4. 실행 및 출력 캡처
-        # ----------------------------------------------------
-        # 테스트 입력 데이터 (학생 수 5, 학번, 이름, 성적 순)
-        INPUT_DATA="5\n101\nAlice\n88.5\n102\nBob\n92.0\n103\nCharlie\n75.3\n104\nDavid\n92.0\n105\nEve\n88.5\n"
-        
-        echo -e "$INPUT_DATA" | ./student_manager > raw_output.txt
+            # ----------------------------------------------------
+            # 1. 초기 변수 설정 및 공백 제거 함수 정의
+            # ----------------------------------------------------
+            SCORE=0
+            FEEDBACK=""
+            
+            # Normalize function: Remove all whitespace (spaces, tabs, newlines, carriage returns) for strict comparison.
+            normalize_output() {
+              tr -d ' \t\n\r' < "$1"
+            }
+            
+            # ----------------------------------------------------
+            # 2. 컴파일 시도
+            # ----------------------------------------------------
+            echo "::group::컴파일 및 실행 테스트"
+            if gcc main.c -o student_manager; then
+              FEEDBACK="[OK] 컴파일 성공.\n"
+              
+              # ----------------------------------------------------
+              # 3. 예상 출력 파일 생성
+              # ----------------------------------------------------
+              # 예상 결과 (평균 87.7, High 92, Low 75)
+              printf "Average: 87.7\n" > expected_output_core.txt
+              printf "High: Bob-92점\n" >> expected_output_core.txt
+              printf "Low: Charlie-75점\n" >> expected_output_core.txt
 
-        # ----------------------------------------------------
-        # 5. 핵심 출력 추출 (프롬프트 제거)
-        # ----------------------------------------------------
-        # 핵심 결과 라인(Average, High, Low)만 추출
-        grep -E 'Average:|High:|Low:' raw_output.txt > actual_output.txt
-        
-        # ----------------------------------------------------
-        # 6. 최종 비교 및 채점 (공백 무시 비교)
-        # ----------------------------------------------------
-        echo "::endgroup::"
-        echo "::group::출력 비교 (공백 무시)"
-        if [[ "$(normalize_output actual_output.txt)" == "$(normalize_output expected_output_core.txt)" ]]; then
-          SCORE=100
-          FEEDBACK="${FEEDBACK}${GREEN}[PASS]${NC} 모든 테스트 케이스 통과! (100점)\n"
-        else
-          SCORE=0
-          FEEDBACK="${FEEDBACK}${RED}[FAIL]${NC} 출력 형식이 일치하지 않습니다. (0점)\n"
-          FEEDBACK="${FEEDBACK}  [기대하는 핵심 출력 (정규화 전)]:\n$(cat expected_output_core.txt)\n"
-          FEEDBACK="${FEEDBACK}  [학생/테스트 출력 (정규화 전)]:\n$(cat actual_output.txt)\n"
-          echo "::error::채점 실패: 출력 내용 불일치."
-        fi
-        echo "::endgroup::"
+              # ----------------------------------------------------
+              # 4. 실행 및 출력 캡처
+              # ----------------------------------------------------
+              # 테스트 입력 데이터 (학생 수 5, 학번, 이름, 성적 순)
+              INPUT_DATA="5\n101\nAlice\n88.5\n102\nBob\n92.0\n103\nCharlie\n75.3\n104\nDavid\n92.0\n105\nEve\n88.5\n"
+              
+              echo -e "$INPUT_DATA" | ./student_manager > raw_output.txt
 
-      else
-        SCORE=0
-        FEEDBACK="${RED}[FAIL]${NC} 컴파일 실패. 코드를 확인하세요."
-        echo "::error::컴파일 실패."
-      fi
+              # ----------------------------------------------------
+              # 5. 핵심 출력 추출 (프롬프트 제거)
+              # ----------------------------------------------------
+              # 핵심 결과 라인(Average, High, Low)만 추출
+              grep -E 'Average:|High:|Low:' raw_output.txt > actual_output.txt
+              
+              # ----------------------------------------------------
+              # 6. 최종 비교 및 채점 (공백 무시 비교)
+              # ----------------------------------------------------
+              echo "::endgroup::"
+              echo "::group::출력 비교 (공백 무시)"
+              if [[ "$(normalize_output actual_output.txt)" == "$(normalize_output expected_output_core.txt)" ]]; then
+                SCORE=100
+                FEEDBACK="${FEEDBACK}${GREEN}[PASS]${NC} 모든 테스트 케이스 통과! (100점)\n"
+              else
+                SCORE=0
+                FEEDBACK="${FEEDBACK}${RED}[FAIL]${NC} 출력 형식이 일치하지 않습니다. (0점)\n"
+                FEEDBACK="${FEEDBACK}  [기대하는 핵심 출력 (정규화 전)]:\n$(cat expected_output_core.txt)\n"
+                FEEDBACK="${FEEDBACK}  [학생/테스트 출력 (정규화 전)]:\n$(cat actual_output.txt)\n"
+                echo "::error::채점 실패: 출력 내용 불일치."
+              fi
+              echo "::endgroup::"
 
-      # ----------------------------------------------------
-      # 7. GitHub Classroom 최종 점수 및 피드백 전달
-      # ----------------------------------------------------
-      echo "score=$SCORE" >> "$GITHUB_OUTPUT"
-      echo "feedback<<EOF" >> "$GITHUB_OUTPUT"
-      echo -e "$FEEDBACK" >> "$GITHUB_OUTPUT"
-      echo "EOF" >> "$GITHUB_OUTPUT"
-      
-      if [ "$SCORE" -ne 100 ]; then
-         exit 1
-      fi
+            else
+              SCORE=0
+              FEEDBACK="${RED}[FAIL]${NC} 컴파일 실패. 코드를 확인하세요."
+              echo "::error::컴파일 실패."
+            fi
+
+            # ----------------------------------------------------
+            # 7. GitHub Classroom 최종 점수 및 피드백 전달
+            # ----------------------------------------------------
+            echo "score=$SCORE" >> "$GITHUB_OUTPUT"
+            echo "feedback<<EOF" >> "$GITHUB_OUTPUT"
+            echo -e "$FEEDBACK" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+            
+            if [ "$SCORE" -ne 100 ]; then
+               exit 1
+            fi
