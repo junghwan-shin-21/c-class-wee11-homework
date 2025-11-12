@@ -1,4 +1,4 @@
-name: 11주차 과제 채점
+name: 11주차 과제 채점 (main.c 단독 컴파일)
 
 on: [push]
 
@@ -24,9 +24,10 @@ steps:
       # ----------------------------------------------------
       FINAL_SCORE=0
       FINAL_FEEDBACK=""
-      TEST_NAME="학생 성적 관리 프로그램 (포인터 기반)"
+      TEST_NAME="학생 성적 관리 프로그램"
       
       # Normalize function: Remove all whitespace (spaces, tabs, newlines, carriage returns) for strict comparison.
+      # 이는 줄바꿈, 탭, 여러 개의 공백 등을 무시하고 내용만 비교하게 하여 포맷 오류로 인한 오채점을 방지합니다.
       normalize_output() {
           cat "$1" | tr -d '\t\n\r' | sed 's/[[:space:]]\+/ /g' | sed 's/^ *//;s/ *$//'
       }
@@ -36,20 +37,20 @@ steps:
       # ----------------------------------------------------
       echo -e "\n${BLUE}--- [TEST] ${TEST_NAME} 채점 시작 ---${NC}"
 
-      # 2-1. 컴파일 시도
-      # student_score_manager_test.c (테스트 데이터)와 main.c (학생 구현)를 함께 컴파일
-      if gcc student_score_manager_test.c main.c -o student_manager -lm 2> compile_error.txt; then
+      # 2-1. 컴파일 시도: main.c만 컴파일합니다.
+      if gcc main.c -o student_manager -lm 2> compile_error.txt; then
         echo -e "${GREEN}[OK]${NC} ${TEST_NAME}: 컴파일 성공."
         
         # 2-2. 예상 출력 파일 생성 (정확한 포맷)
-        # 학생 데이터 3명 (Kim 80, Lee 88, Choi 92) 기준
-        # 평균: (80+88+92)/3 = 86.666... -> 86.6 (테스트 파일의 출력 포맷에 따라 조정)
+        # 이 예상 출력은 학생의 main.c가 실행 시 출력해야 하는 정확한 결과입니다.
         printf "Average: 86.6\nHigh: Choi - 92점\nLow: Kim - 80점\n" > expected_output.txt
         
         # 2-3. 실행 및 원본 출력 캡처
+        # 학생의 main.c가 실행되면 test data에 대한 결과를 출력해야 합니다.
         ./student_manager > actual_output_raw.txt
         
         # 2-4. 출력 정리
+        # 빈 줄을 제거하고 실제 출력 내용만 남깁니다.
         cat actual_output_raw.txt | sed '/^$/d' > actual_output.txt
 
         # 2-5. 출력 비교
@@ -75,7 +76,6 @@ steps:
       # 3. 최종 점수 및 피드백 전송
       # ----------------------------------------------------
       
-      # 최종 피드백 구성
       FULL_FEEDBACK="--- 최종 채점 결과 (총 ${FINAL_SCORE}점 / 100점) ---\n"
       FULL_FEEDBACK="${FULL_FEEDBACK}\n${FINAL_FEEDBACK}"
       
