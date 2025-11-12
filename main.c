@@ -25,10 +25,10 @@ double getAverage(const Student *students, int count) {
 }
 
 /**
- * @brief 최고 성적을 받은 학생의 포인터를 반환합니다.
- * @param students Student 구조체 배열의 포인터
- * @param count 학생 수
- * @return Student* 최고 성적 학생 구조체의 포인터
+ * 최고 성적을 받은 학생의 포인터를 반환합니다.
+ * students Student 구조체 배열의 포인터
+ * count 학생 수
+ * Student* 최고 성적 학생 구조체의 포인터
  */
 Student* getHigh(Student *students, int count) {
     Student *highest = students; // 첫 번째 학생을 초기 최고 성적자로 가정
