@@ -4,9 +4,9 @@
 
 // Student 구조체 정의
 typedef struct {
-    int id;           // 학번 (정수)
-    char name[20];    // 이름 (문자열)
-    double score;     // 점수 (실수)
+    int id;          // 학번 (정수)
+    char name[20];   // 이름 (문자열)
+    double score;    // 점수 (실수)
 } Student;
 
 /**
@@ -25,10 +25,10 @@ double getAverage(const Student *students, int count) {
 }
 
 /**
- * 최고 성적을 받은 학생의 포인터를 반환합니다.
- * students Student 구조체 배열의 포인터
- * count 학생 수
- * Student* 최고 성적 학생 구조체의 포인터
+ * @brief 최고 성적을 받은 학생의 포인터를 반환합니다.
+ * @param students Student 구조체 배열의 포인터
+ * @param count 학생 수
+ * @return Student* 최고 성적 학생 구조체의 포인터
  */
 Student* getHigh(Student *students, int count) {
     Student *highest = students; // 첫 번째 학생을 초기 최고 성적자로 가정
@@ -108,16 +108,17 @@ int main(void) {
     Student *high_scorer = getHigh(student_list, num_students);
     Student *low_scorer = getLow(student_list, num_students);
 
-    // 5. 결과 출력 (예시 형식에 맞춰 출력)
+    // 5. 결과 출력 (채점 스크립트에 맞춘 형식: 이름 - 점수점)
     printf("\nAverage: %.1f\n", average);
     
-    // 최고 성적자 출력 형식: High: 20251114 - Choi
-    printf("High: %d - %s\n", 
-           high_scorer->id, high_scorer->name);
+    // 최고 성적자 출력: High: Choi - 92점
+    // %.0f를 사용하여 소수점 없이 점수를 출력하고 '점'을 붙임
+    printf("High: %s - %.0f점\n", 
+            high_scorer->name, high_scorer->score);
     
-    // 최저 성적자 출력 형식: Low: 20251111 - Kim
-    printf("Low: %d - %s\n", 
-           low_scorer->id, low_scorer->name);
+    // 최저 성적자 출력: Low: Kim - 80점
+    printf("Low: %s - %.0f점\n", 
+            low_scorer->name, low_scorer->score);
 
     // 6. 메모리 해제
     if (student_list != NULL) {
