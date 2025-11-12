@@ -39,7 +39,7 @@ jobs:
           echo -e "\n${BLUE}--- [TEST P1] 약수 출력 채점 시작 (main-1.c) ---${NC}"
 
           # 2-1. 컴파일 시도
-          if gcc main-1.c -o main1 2> compile_error_p1.txt; then
+          if gcc main.c -o main1 2> compile_error_p1.txt; then
             echo -e "${GREEN}[OK]${NC} 문제 1: 컴파일 성공."
             
             # 2-2. 예상 출력 파일 생성 (printf로 변경하여 줄바꿈 오차 제거)
