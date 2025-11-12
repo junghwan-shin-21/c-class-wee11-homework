@@ -7,10 +7,10 @@ build-and-test:
 runs-on: ubuntu-latest
 
 steps:
-  - name: 🗂️ 코드 체크아웃
+  - name: 코드 체크아웃
     uses: actions/checkout@v3
 
-  - name: 🏆 통합 채점 스크립트 실행 (100점 만점)
+  - name: 통합 채점 스크립트 실행 (100점 만점)
     id: grading
     run: |
       # ANSI 색상 코드 정의
