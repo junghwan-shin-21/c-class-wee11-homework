@@ -31,9 +31,9 @@ jobs:
           FEEDBACK="[OK] 컴파일 성공.\n"
           
           # ******************************************************
-          # 예상 출력 파일 생성 (평균: 87.26으로 수정됨)
+          # 예상 출력 파일 생성 (평균: 87.3으로 소수점 첫째 자리 수정)
           # ******************************************************
-          printf "Average: 87.26\n" > expected_output_core.txt
+          printf "Average: 87.3\n" > expected_output_core.txt
           printf "High: Bob-92점\n" >> expected_output_core.txt
           printf "Low: Charlie-75점\n" >> expected_output_core.txt
 
@@ -43,6 +43,8 @@ jobs:
           echo -e "$INPUT_DATA" | ./student_manager > raw_output.txt
 
           # 핵심 출력 추출 (Average, High, Low 라인만)
+          # 학생 코드 출력에서 Average, High, Low 라인의 텍스트를 추출할 때, 
+          # 띄어쓰기나 구두점의 차이로 테스트가 실패하지 않도록 주의해야 합니다.
           grep -E 'Average:|High:|Low:' raw_output.txt > actual_output.txt
           
           echo "::endgroup::"
@@ -72,5 +74,5 @@ jobs:
         echo "EOF" >> "$GITHUB_OUTPUT"
         
         if [ "$SCORE" -ne 100 ]; then
-           exit 1
+            exit 1
         fi
