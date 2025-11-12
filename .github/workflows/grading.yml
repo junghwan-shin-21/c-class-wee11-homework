@@ -39,7 +39,7 @@ uses: actions/checkout@v3
         # 3. 예상 출력 파일 생성
         # ----------------------------------------------------
         # 예상 결과 (평균 87.7, High 92, Low 75)
-        # C 코드에서 정수 출력(92, 75)을 기대하는 형식으로 정의합니다.
+        # main.c에서 'High: Bob-92점' 형식으로 출력한다고 가정합니다.
         printf "Average: 87.7\n" > expected_output_core.txt
         printf "High: Bob-92점\n" >> expected_output_core.txt
         printf "Low: Charlie-75점\n" >> expected_output_core.txt
@@ -47,8 +47,7 @@ uses: actions/checkout@v3
         # ----------------------------------------------------
         # 4. 실행 및 출력 캡처
         # ----------------------------------------------------
-        # 테스트 입력 데이터 (5명의 학생)
-        # 5\n101\nAlice\n88.5\n102\nBob\n92.0\n103\nCharlie\n75.3\n104\nDavid\n92.0\n105\nEve\n88.5\n
+        # 테스트 입력 데이터 (학생 수 5, 학번, 이름, 성적 순)
         INPUT_DATA="5\n101\nAlice\n88.5\n102\nBob\n92.0\n103\nCharlie\n75.3\n104\nDavid\n92.0\n105\nEve\n88.5\n"
         
         echo -e "$INPUT_DATA" | ./student_manager > raw_output.txt
