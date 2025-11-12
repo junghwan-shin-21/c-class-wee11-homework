@@ -113,11 +113,11 @@ int main(void) {
     
     // 최고 성적자 출력: High: Choi - 92점
     // %.0f를 사용하여 소수점 없이 점수를 출력하고 '점'을 붙임
-    printf("High: %s - %.0f점\n", 
+    printf("High: %s- %.0f점\n", 
             high_scorer->name, high_scorer->score);
     
     // 최저 성적자 출력: Low: Kim - 80점
-    printf("Low: %s - %.0f점\n", 
+    printf("Low: %s- %.0f점\n", 
             low_scorer->name, low_scorer->score);
 
     // 6. 메모리 해제
