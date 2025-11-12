@@ -1,4 +1,4 @@
-name: 11주차 과제 채점 (main.c 단독 컴파일)
+name: 11주차 과제 채점 (입력 시뮬레이션)
 
 on: [push]
 
@@ -20,14 +20,14 @@ steps:
       NC='\033[0m' # No Color
 
       # ----------------------------------------------------
-      # 1. 초기 변수 설정
+      # 1. 초기 변수 및 헬퍼 함수 설정
       # ----------------------------------------------------
       FINAL_SCORE=0
       FINAL_FEEDBACK=""
-      TEST_NAME="학생 성적 관리 프로그램"
+      TEST_NAME="학생 성적 관리 프로그램 (입력 시뮬레이션)"
       
-      # Normalize function: Remove all whitespace (spaces, tabs, newlines, carriage returns) for strict comparison.
-      # 이는 줄바꿈, 탭, 여러 개의 공백 등을 무시하고 내용만 비교하게 하여 포맷 오류로 인한 오채점을 방지합니다.
+      # Normalize function: 모든 공백(줄바꿈, 탭, 여러 칸 공백)을 제거하고 비교하여,
+      # 출력 내용 자체의 일치 여부만 확인합니다.
       normalize_output() {
           cat "$1" | tr -d '\t\n\r' | sed 's/[[:space:]]\+/ /g' | sed 's/^ *//;s/ *$//'
       }
@@ -42,15 +42,18 @@ steps:
         echo -e "${GREEN}[OK]${NC} ${TEST_NAME}: 컴파일 성공."
         
         # 2-2. 예상 출력 파일 생성 (정확한 포맷)
-        # 이 예상 출력은 학생의 main.c가 실행 시 출력해야 하는 정확한 결과입니다.
+        # 학생 수 5명, 점수: 80, 90, 87, 92, 84 -> 평균: 86.6
+        # 예상 출력은 요청하신 예시와 정확히 일치해야 합니다.
         printf "Average: 86.6\nHigh: Choi - 92점\nLow: Kim - 80점\n" > expected_output.txt
+
+        # 2-3. 입력 시뮬레이션 및 실행
+        # 요청된 예시 입력을 시뮬레이션하여 실행 파일에 파이프로 전달합니다.
+        INPUT_DATA="5\n20251111\nkim\n80\n20251112\nLee\n90\n20251113\nPark\n87\n20251114\nChoi\n92\n20251115\nYoon\n84"
         
-        # 2-3. 실행 및 원본 출력 캡처
-        # 학생의 main.c가 실행되면 test data에 대한 결과를 출력해야 합니다.
-        ./student_manager > actual_output_raw.txt
+        echo -e "$INPUT_DATA" | ./student_manager > actual_output_raw.txt
         
         # 2-4. 출력 정리
-        # 빈 줄을 제거하고 실제 출력 내용만 남깁니다.
+        # 실제 출력에서 빈 줄을 제거하고 필요한 내용만 남깁니다.
         cat actual_output_raw.txt | sed '/^$/d' > actual_output.txt
 
         # 2-5. 출력 비교
@@ -62,9 +65,9 @@ steps:
           FINAL_FEEDBACK="${GREEN}[OK]${NC} ${TEST_NAME}: 통과 (100점). 모든 출력이 정확합니다."
         else
           FINAL_FEEDBACK="${RED}[FAIL]${NC} ${TEST_NAME}: 최종 출력 불일치. (0점)"
-          FINAL_FEEDBACK="${FINAL_FEEDBACK}\n  [학생 출력 (정규화)]: ${ACTUAL_CLEAN}"
           FINAL_FEEDBACK="${FINAL_FEEDBACK}\n  [예상 출력 (정규화)]: ${EXPECTED_CLEAN}"
-          FINAL_FEEDBACK="${FINAL_FEEDBACK}\n\n[팁]: 평균 소수점 자리, 이름/점수 출력 포맷, 띄어쓰기가 예상 출력과 정확히 일치하는지 확인하세요."
+          FINAL_FEEDBACK="${FINAL_FEEDBACK}\n  [학생 출력 (정규화)]: ${ACTUAL_CLEAN}"
+          FINAL_FEEDBACK="${FINAL_FEEDBACK}\n\n[팁]: 평균 소수점 자리, 이름/점수 출력 포맷 ('점' 포함), 띄어쓰기가 예상 출력과 정확히 일치하는지 확인하세요."
         fi
       else
         echo -e "${RED}[FAIL]${NC} ${TEST_NAME}: 컴파일 실패."
